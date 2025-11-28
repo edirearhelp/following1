@@ -24,6 +24,8 @@ h1 { color: #00ff6a; font-size: 2.5rem; margin-top: 10px; }
 .user-profile { display: flex; align-items: center; gap: 15px; background: rgba(0,255,106,0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; }
 .user-avatar { width: 60px; height: 60px; border-radius: 50%; }
 .logout-btn { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 5px; margin-left: auto; cursor: pointer; }
+.loading, .error { padding: 15px; text-align: center; color: #aaa; }
+.error { color: #ff6b6b; }
 </style>
 
 </head>
@@ -61,7 +63,7 @@ h1 { color: #00ff6a; font-size: 2.5rem; margin-top: 10px; }
 const CLIENT_ID = "380562358749-c6i173feb8aaa0c36rlp6knjt1v6i3mk.apps.googleusercontent.com";
 const API_KEY = "AIzaSyAiq3RJkLkF1SL9TBy-Rw_VOW6CWh_XHbU";
 
-// SCOPES
+// SCOPES - Updated to include YouTube Data API v3
 const SCOPES = [
     "https://www.googleapis.com/auth/youtube.readonly",
     "https://www.googleapis.com/auth/youtube.force-ssl",
@@ -99,39 +101,58 @@ function googleLogin() {
 
 // TOKEN EXCHANGE
 async function exchangeCode(response) {
-    const res = await fetch("https://oauth2.googleapis.com/token", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body:
-            `code=${response.code}` +
-            `&client_id=${CLIENT_ID}` +
-            `&client_secret=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` +
-            `&redirect_uri=postmessage` +
-            `&grant_type=authorization_code`
-    });
+    try {
+        const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body:
+                `code=${response.code}` +
+                `&client_id=${CLIENT_ID}` +
+                `&client_secret=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` +
+                `&redirect_uri=postmessage` +
+                `&grant_type=authorization_code`
+        });
 
-    const data = await res.json();
-    access_token = data.access_token;
+        const data = await res.json();
+        if (data.error) {
+            console.error("Token exchange error:", data);
+            alert("Authentication failed. Please try again.");
+            return;
+        }
+        
+        access_token = data.access_token;
+        localStorage.setItem("yt_token", access_token);
+        
+        await getUserInfo();
+        
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("dataBox").style.display = "block";
 
-    localStorage.setItem("yt_token", access_token);
-    getUserInfo();
-
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("dataBox").style.display = "block";
-
-    getWatchHistory();
-    getSubscribedChannels();
+        getWatchHistory();
+        getSubscribedChannels();
+    } catch (error) {
+        console.error("Exchange error:", error);
+        alert("Authentication failed. Please try again.");
+    }
 }
 
 // USER PROFILE
 async function getUserInfo() {
-    const res = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
-        headers: { Authorization: "Bearer " + access_token }
-    });
-    const user = await res.json();
-
-    localStorage.setItem("yt_user", JSON.stringify(user));
-    displayUserProfile(user);
+    try {
+        const res = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: { Authorization: "Bearer " + access_token }
+        });
+        
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
+        const user = await res.json();
+        localStorage.setItem("yt_user", JSON.stringify(user));
+        displayUserProfile(user);
+    } catch (error) {
+        console.error("Error fetching user info:", error);
+    }
 }
 
 function displayUserProfile(user) {
@@ -152,41 +173,73 @@ function logout() {
     location.reload();
 }
 
-// ⭐⭐⭐ WATCH HISTORY — FIXED ⭐⭐⭐
+// WATCH HISTORY - FIXED VERSION
 async function getWatchHistory() {
     const box = document.getElementById("watchHistory");
     box.innerHTML = "<div class='loading'>Loading watch history...</div>";
 
     try {
+        // First, get the activities (which includes watch history)
         const res = await fetch(
-            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=HL&maxResults=25&key=${API_KEY}`,
-            { headers: { Authorization: "Bearer " + access_token } }
+            `https://www.googleapis.com/youtube/v3/activities?part=snippet,contentDetails&mine=true&maxResults=25&key=${API_KEY}`,
+            { 
+                headers: { 
+                    Authorization: "Bearer " + access_token,
+                    "Content-Type": "application/json"
+                } 
+            }
         );
+
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
         const data = await res.json();
         box.innerHTML = "";
 
         if (!data.items || data.items.length === 0) {
-            box.innerHTML = "<div class='item'>Watch history is empty.</div>";
+            box.innerHTML = "<div class='item'>Watch history is empty or not available.</div>";
             return;
         }
 
-        data.items.forEach(item => {
+        // Filter for watch history items
+        const watchHistoryItems = data.items.filter(item => 
+            item.snippet.type === "upload" || 
+            (item.contentDetails && item.contentDetails.upload)
+        );
+
+        if (watchHistoryItems.length === 0) {
+            box.innerHTML = "<div class='item'>No recent watch history found.</div>";
+            return;
+        }
+
+        // Display watch history
+        watchHistoryItems.forEach(item => {
             const snippet = item.snippet;
-            const thumb = snippet.thumbnails.medium.url;
+            const thumb = snippet.thumbnails ? 
+                (snippet.thumbnails.medium || snippet.thumbnails.default).url : 
+                "https://via.placeholder.com/120x68?text=No+Thumbnail";
+            
+            const videoId = item.contentDetails && item.contentDetails.upload ? 
+                item.contentDetails.upload.videoId : null;
+            
+            const videoTitle = snippet.title || "Unknown Title";
+            const channelTitle = snippet.channelTitle || "Unknown Channel";
 
             box.innerHTML += `
                 <div class="item">
-                    <img src="${thumb}" class="video-thumbnail">
+                    <img src="${thumb}" class="video-thumbnail" alt="${videoTitle}">
                     <div>
-                        <div class="video-title">${snippet.title}</div>
-                        <div class="video-duration">Channel: ${snippet.channelTitle}</div>
+                        <div class="video-title">${videoTitle}</div>
+                        <div class="video-duration">Channel: ${channelTitle}</div>
+                        ${videoId ? `<div class="video-id">Video ID: ${videoId}</div>` : ''}
                     </div>
                 </div>
             `;
         });
     } catch (e) {
-        box.innerHTML = "<div class='error'>Error loading history.</div>";
+        console.error("Error loading watch history:", e);
+        box.innerHTML = `<div class="error">Error loading history: ${e.message}</div>`;
     }
 }
 
@@ -198,8 +251,17 @@ async function getSubscribedChannels() {
     try {
         const res = await fetch(
             `https://www.googleapis.com/youtube/v3/subscriptions?part=snippet&mine=true&maxResults=20&key=${API_KEY}`,
-            { headers: { Authorization: "Bearer " + access_token } }
+            { 
+                headers: { 
+                    Authorization: "Bearer " + access_token,
+                    "Content-Type": "application/json"
+                } 
+            }
         );
+
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
         const data = await res.json();
         box.innerHTML = "";
@@ -210,21 +272,22 @@ async function getSubscribedChannels() {
         }
 
         data.items.forEach(item => {
-            const channelId = item.snippet.resourceId.channelId;
             const logo = item.snippet.thumbnails.default.url;
+            const channelName = item.snippet.title;
 
             box.innerHTML += `
                 <div class="item">
-                    <img src="${logo}" class="channel-logo">
+                    <img src="${logo}" class="channel-logo" alt="${channelName}">
                     <div>
-                        <div class="channel-name">${item.snippet.title}</div>
+                        <div class="channel-name">${channelName}</div>
                     </div>
                 </div>
             `;
         });
 
     } catch (error) {
-        box.innerHTML = "<div class='error'>Error loading subscriptions.</div>";
+        console.error("Error loading subscriptions:", error);
+        box.innerHTML = `<div class="error">Error loading subscriptions: ${error.message}</div>`;
     }
 }
 
