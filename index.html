@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edirears Followers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="Edirear.png">
+
+<style>
+    body {
+        margin: 0;
+        background: #000;
+        color: white;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+    }
+
+    h1 {
+        color: #00ff6a;
+        margin-top: 10px;
+        font-size: 2.5rem;
+    }
+
+    .btn {
+        background: #00ff6a;
+        color: black;
+        padding: 12px 25px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: bold;
+        transition: 0.3s;
+        margin: 10px;
+    }
+
+    .btn:hover {
+        transform: scale(1.05);
+        background: #00d65a;
+    }
+
+    #dataBox {
+        margin-top: 25px;
+        text-align: left;
+        background: #111;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        display: none;
+    }
+
+    .section-title {
+        color: #00ff6a;
+        margin-top: 25px;
+        font-size: 22px;
+        border-bottom: 2px solid #00ff6a;
+        padding-bottom: 10px;
+    }
+
+    .item {
+        padding: 15px;
+        border-bottom: 1px solid #222;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .channel-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .video-thumbnail {
+        width: 120px;
+        height: 68px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+
+    .channel-info, .video-info {
+        flex: 1;
+    }
+
+    .channel-name {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .subscriber-count {
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+
+    .video-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .video-duration {
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 20px;
+        color: #00ff6a;
+    }
+
+    .error {
+        color: #ff4444;
+        padding: 10px;
+        background: rgba(255, 68, 68, 0.1);
+        border-radius: 5px;
+        margin: 10px 0;
+    }
+
+    .tabs {
+        display: flex;
+        justify-content: center;
+        margin: 20px 0;
+    }
+
+    .tab {
+        padding: 10px 20px;
+        background: #222;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin: 0 5px;
+        border-radius: 5px;
+        transition: 0.3s;
+    }
+
+    .tab.active {
+        background: #00ff6a;
+        color: black;
+    }
+
+    .content-section {
+        display: none;
+    }
+
+    .content-section.active {
+        display: block;
+    }
+    
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: rgba(0, 255, 106, 0.1);
+        border-radius: 10px;
+    }
+    
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-details {
+        text-align: left;
+    }
+    
+    .user-name {
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+    }
+    
+    .user-email {
+        color: #aaa;
+    }
+    
+    .logout-btn {
+        background: transparent;
+        color: #ff4444;
+        border: 1px solid #ff4444;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-left: auto;
+    }
+    
+    .logout-btn:hover {
+        background: rgba(255, 68, 68, 0.1);
+    }
+    
+    .back-btn {
+        background: transparent;
+        color: #00ff6a;
+        border: 1px solid #00ff6a;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-bottom: 15px;
+    }
+    
+    .back-btn:hover {
+        background: rgba(0, 255, 106, 0.1);
+    }
+    
+    .channel-videos {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .video-card {
+        background: #222;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+    
+    .video-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .video-card-thumbnail {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+    }
+    
+    .video-card-info {
+        padding: 15px;
+    }
+    
+    .video-card-title {
+        font-weight: bold;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .video-card-meta {
+        color: #aaa;
+        font-size: 0.9rem;
+    }
+    
+    /* Video Player Styles */
+    #videoPlayerSection {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    
+    .video-player-container {
+        width: 100%;
+        max-width: 800px;
+        position: relative;
+    }
+    
+    .video-player {
+        width: 100%;
+        aspect-ratio: 16/9;
+        border-radius: 8px;
+        background: #000;
+        border: none;
+    }
+    
+    .video-player-info {
+        margin-top: 15px;
+        text-align: left;
+        background: #111;
+        padding: 15px;
+        border-radius: 8px;
+        width: 100%;
+        max-width: 800px;
+    }
+    
+    .video-player-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .video-player-meta {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    
+    .video-player-description {
+        color: #ccc;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        max-height: 100px;
+        overflow-y: auto;
+    }
+    
+    .close-player-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 1.2rem;
+        cursor: pointer;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .close-player-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>
+</head>
+
+<body>
+
+<h1>Edirears Followers</h1>
+
+<div id="loginSection">
+    <button class="btn" onclick="googleLogin()">Sign in with Google</button>
+</div>
+
+<div id="dataBox">
+    <div id="userProfile" class="user-profile">
+        <!-- User profile will be inserted here -->
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="showSection('subscribedChannelsSection')">Subscribed Channels</button>
+    </div>
+
+    <div id="subscribedChannelsSection" class="content-section active">
+        <h2 class="section-title">Subscribed Channels</h2>
+        <div id="subscribedChannels"></div>
+    </div>
+    
+    <div id="channelVideosSection" class="content-section">
+        <button class="back-btn" onclick="showSection('subscribedChannelsSection')">← Back to Channels</button>
+        <h2 class="section-title" id="channelVideosTitle">Channel Videos</h2>
+        <div id="channelVideos" class="channel-videos"></div>
+    </div>
+</div>
+
+<!-- Video Player Section -->
+<div id="videoPlayerSection" style="display: none;">
+    <div class="video-player-container">
+        <button class="close-player-btn" onclick="closeVideoPlayer()">×</button>
+        <iframe id="videoPlayer" class="video-player" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+    <div id="videoPlayerInfo" class="video-player-info">
+        <div id="videoPlayerTitle" class="video-player-title"></div>
+        <div id="videoPlayerMeta" class="video-player-meta"></div>
+        <div id="videoPlayerDescription" class="video-player-description"></div>
+    </div>
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+// YOUR KEYS
+const CLIENT_ID = "380562358749-c6i173feb8aaa0c36rlp6knjt1v6i3mk.apps.googleusercontent.com";
+const API_KEY = "AIzaSyAiq3RJkLkF1SL9TBy-Rw_VOW6CWh_XHbU";
+
+// REQUIRED SCOPES
+const SCOPES = [
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/youtube.force-ssl"
+].join(" ");
+
+// Token store
+let access_token = null;
+let refresh_token = null;
+let token_expiry_time = null;
+
+// Token refresh interval (in milliseconds)
+const TOKEN_REFRESH_THRESHOLD = 300000; // 5 minutes before expiry
+let tokenRefreshInterval = null;
+
+// Check for saved tokens on page load
+window.onload = async function() {
+    const savedAccessToken = localStorage.getItem('youtube_access_token');
+    const savedRefreshToken = localStorage.getItem('youtube_refresh_token');
+    const savedUser = localStorage.getItem('youtube_user_info');
+    const savedExpiry = localStorage.getItem('youtube_token_expiry');
+    
+    if (savedAccessToken && savedUser) {
+        access_token = savedAccessToken;
+        refresh_token = savedRefreshToken;
+        token_expiry_time = savedExpiry ? parseInt(savedExpiry) : null;
+        
+        // Check if token needs refresh
+        if (token_expiry_time && Date.now() >= token_expiry_time - TOKEN_REFRESH_THRESHOLD) {
+            if (refresh_token) {
+                await refreshAccessToken();
+            } else {
+                // No refresh token available, need to login again
+                logout();
+                return;
+            }
+        }
+        
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("dataBox").style.display = "block";
+        
+        // Display user profile
+        const user = JSON.parse(savedUser);
+        displayUserProfile(user);
+        
+        // Start token refresh monitoring
+        startTokenRefreshMonitor();
+        
+        // Load data
+        getSubscribedChannels();
+    }
+};
+
+// Start monitoring token expiry
+function startTokenRefreshMonitor() {
+    if (tokenRefreshInterval) {
+        clearInterval(tokenRefreshInterval);
+    }
+    
+    tokenRefreshInterval = setInterval(async () => {
+        if (token_expiry_time && refresh_token) {
+            // Check if token is about to expire (within 5 minutes)
+            if (Date.now() >= token_expiry_time - TOKEN_REFRESH_THRESHOLD) {
+                console.log("Refreshing token before expiry...");
+                await refreshAccessToken();
+            }
+        }
+    }, 60000); // Check every minute
+}
+
+// Google Sign-In popup
+function googleLogin() {
+    google.accounts.oauth2.initCodeClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        ux_mode: "popup",
+        callback: loadToken
+    }).requestCode();
+}
+
+// Exchange "code" → "token"
+async function loadToken(response) {
+    try {
+        const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body:
+                `code=${response.code}` +
+                `&client_id=${CLIENT_ID}` +
+                `&client_secret=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` +
+                `&grant_type=authorization_code` +
+                `&redirect_uri=postmessage`
+        });
+
+        const data = await res.json();
+        access_token = data.access_token;
+        refresh_token = data.refresh_token; // Store refresh token
+        
+        // Calculate expiry time (default: 1 hour from now)
+        const expires_in = data.expires_in || 3600; // 3600 seconds = 1 hour
+        token_expiry_time = Date.now() + (expires_in * 1000);
+        
+        // Save tokens to localStorage
+        localStorage.setItem('youtube_access_token', access_token);
+        if (refresh_token) {
+            localStorage.setItem('youtube_refresh_token', refresh_token);
+        }
+        localStorage.setItem('youtube_token_expiry', token_expiry_time.toString());
+
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("dataBox").style.display = "block";
+
+        // Start token refresh monitoring
+        startTokenRefreshMonitor();
+
+        getUserInfo();
+        getSubscribedChannels();
+    } catch (error) {
+        console.error("Token exchange error:", error);
+        alert("Error during authentication. Please try again.");
+    }
+}
+
+// Refresh access token using refresh token
+async function refreshAccessToken() {
+    if (!refresh_token) {
+        console.error("No refresh token available");
+        logout();
+        return false;
+    }
+    
+    try {
+        const res = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body:
+                `refresh_token=${refresh_token}` +
+                `&client_id=${CLIENT_ID}` +
+                `&client_secret=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` +
+                `&grant_type=refresh_token`
+        });
+
+        const data = await res.json();
+        
+        if (data.error) {
+            console.error("Token refresh error:", data.error);
+            logout();
+            return false;
+        }
+        
+        access_token = data.access_token;
+        
+        // Update expiry time
+        const expires_in = data.expires_in || 3600;
+        token_expiry_time = Date.now() + (expires_in * 1000);
+        
+        // Save updated tokens to localStorage
+        localStorage.setItem('youtube_access_token', access_token);
+        localStorage.setItem('youtube_token_expiry', token_expiry_time.toString());
+        
+        console.log("Access token refreshed successfully");
+        return true;
+    } catch (error) {
+        console.error("Token refresh error:", error);
+        logout();
+        return false;
+    }
+}
+
+// Fetch User Profile
+async function getUserInfo() {
+    try {
+        const res = await fetch(
+            "https://www.googleapis.com/oauth2/v2/userinfo",
+            { headers: { Authorization: "Bearer " + access_token } }
+        );
+        
+        if (res.status === 401) {
+            // Token expired, try to refresh
+            const refreshed = await refreshAccessToken();
+            if (refreshed) {
+                // Retry with new token
+                return getUserInfo();
+            }
+            return;
+        }
+        
+        const user = await res.json();
+        
+        // Save user info to localStorage
+        localStorage.setItem('youtube_user_info', JSON.stringify(user));
+        
+        displayUserProfile(user);
+    } catch (error) {
+        console.error("Error fetching user info:", error);
+        document.getElementById("userProfile").innerHTML = `
+            <div class="error">Failed to load user information.</div>
+        `;
+    }
+}
+
+// Display user profile
+function displayUserProfile(user) {
+    document.getElementById("userProfile").innerHTML = `
+        <img src="${user.picture}" alt="Profile Picture" class="user-avatar">
+        <div class="user-details">
+            <div class="user-name">${user.name}</div>
+            <div class="user-email">${user.email}</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    `;
+}
+
+// Logout function
+function logout() {
+    // Clear tokens and user data
+    localStorage.removeItem('youtube_access_token');
+    localStorage.removeItem('youtube_refresh_token');
+    localStorage.removeItem('youtube_user_info');
+    localStorage.removeItem('youtube_token_expiry');
+    
+    // Stop token refresh monitoring
+    if (tokenRefreshInterval) {
+        clearInterval(tokenRefreshInterval);
+        tokenRefreshInterval = null;
+    }
+    
+    // Reset variables
+    access_token = null;
+    refresh_token = null;
+    token_expiry_time = null;
+    
+    // Reset UI
+    document.getElementById("dataBox").style.display = "none";
+    document.getElementById("loginSection").style.display = "block";
+    document.getElementById("userProfile").innerHTML = "";
+    document.getElementById("subscribedChannels").innerHTML = "";
+    document.getElementById("channelVideos").innerHTML = "";
+    closeVideoPlayer();
+    
+    // Try to revoke token
+    if (access_token) {
+        fetch(`https://oauth2.googleapis.com/revoke?token=${access_token}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).catch(() => {
+            // Ignore errors on token revocation
+        });
+    }
+}
+
+// Fetch Subscribed Channels
+async function getSubscribedChannels() {
+    const box = document.getElementById("subscribedChannels");
+    box.innerHTML = "<div class='loading'>Loading subscribed channels...</div>";
+    
+    try {
+        const res = await fetch(
+            `https://www.googleapis.com/youtube/v3/subscriptions?part=snippet,subscriberSnippet&mine=true&maxResults=20&key=${API_KEY}`,
+            { headers: { Authorization: "Bearer " + access_token } }
+        );
+
+        if (res.status === 401) {
+            // Token expired, try to refresh
+            const refreshed = await refreshAccessToken();
+            if (refreshed) {
+                // Retry with new token
+                return getSubscribedChannels();
+            }
+            return;
+        }
+
+        const data = await res.json();
+        box.innerHTML = "";
+
+        if (!data.items || data.items.length === 0) {
+            box.innerHTML = "<div class='item'>No subscriptions found.</div>";
+            return;
+        }
+
+        // Get channel IDs for additional details
+        const channelIds = data.items.map(item => item.snippet.resourceId.channelId);
+
+        // Fetch channel details (for subscriber counts and logos)
+        const channelsRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIds.join(',')}&key=${API_KEY}`,
+            { headers: { Authorization: "Bearer " + access_token } }
+        );
+
+        const channelsData = await channelsRes.json();
+        const channelsMap = {};
+        
+        if (channelsData.items) {
+            channelsData.items.forEach(channel => {
+                channelsMap[channel.id] = {
+                    logo: channel.snippet.thumbnails.default.url,
+                    subscribers: formatSubscribers(channel.statistics.subscriberCount)
+                };
+            });
+        }
+
+        data.items.forEach(item => {
+            const channelId = item.snippet.resourceId.channelId;
+            const channelInfo = channelsMap[channelId] || {
+                logo: "",
+                subscribers: "Unknown"
+            };
+            
+            box.innerHTML += `
+                <div class="item" onclick="getChannelVideos('${channelId}', '${escapeString(item.snippet.title)}')">
+                    <img src="${channelInfo.logo}" alt="Channel Logo" class="channel-logo">
+                    <div class="channel-info">
+                        <div class="channel-name">${item.snippet.title}</div>
+                        <div class="subscriber-count">${channelInfo.subscribers} subscribers</div>
+                    </div>
+                </div>
+            `;
+        });
+    } catch (error) {
+        console.error("Error fetching subscribed channels:", error);
+        box.innerHTML = "<div class='error'>Failed to load subscribed channels. Please try again.</div>";
+    }
+}
+
+// Fetch latest videos from a channel
+async function getChannelVideos(channelId, channelName) {
+    const box = document.getElementById("channelVideos");
+    const title = document.getElementById("channelVideosTitle");
+    
+    box.innerHTML = "<div class='loading'>Loading latest videos...</div>";
+    title.textContent = `Latest Videos from ${channelName}`;
+    
+    try {
+        // First, get the uploads playlist ID for the channel
+        const channelRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${channelId}&key=${API_KEY}`,
+            { headers: { Authorization: "Bearer " + access_token } }
+        );
+
+        if (channelRes.status === 401) {
+            // Token expired, try to refresh
+            const refreshed = await refreshAccessToken();
+            if (refreshed) {
+                // Retry with new token
+                return getChannelVideos(channelId, channelName);
+            }
+            return;
+        }
+
+        const channelData = await channelRes.json();
+        
+        if (!channelData.items || channelData.items.length === 0) {
+            box.innerHTML = "<div class='error'>Channel not found.</div>";
+            return;
+        }
+        
+        const uploadsPlaylistId = channelData.items[0].contentDetails.relatedPlaylists.uploads;
+        
+        // Get videos from the uploads playlist
+        const videosRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=10&key=${API_KEY}`,
+            { headers: { Authorization: "Bearer " + access_token } }
+        );
+
+        const videosData = await videosRes.json();
+        box.innerHTML = "";
+
+        if (!videosData.items || videosData.items.length === 0) {
+            box.innerHTML = "<div class='item'>No videos found for this channel.</div>";
+            return;
+        }
+
+        // Get video IDs for additional details
+        const videoIds = videosData.items.map(item => item.snippet.resourceId.videoId);
+
+        // Fetch video details (for duration, statistics, and description)
+        const videoDetailsRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,snippet&id=${videoIds.join(',')}&key=${API_KEY}`,
+            { headers: { Authorization: "Bearer " + access_token } }
+        );
+
+        const videoDetailsData = await videoDetailsRes.json();
+        const videosMap = {};
+        
+        if (videoDetailsData.items) {
+            videoDetailsData.items.forEach(video => {
+                videosMap[video.id] = {
+                    duration: formatDuration(video.contentDetails.duration),
+                    viewCount: formatViews(video.statistics.viewCount),
+                    description: video.snippet.description || "No description available",
+                    publishedAt: formatDate(video.snippet.publishedAt),
+                    channelTitle: video.snippet.channelTitle
+                };
+            });
+        }
+
+        videosData.items.forEach(item => {
+            const videoId = item.snippet.resourceId.videoId;
+            const videoInfo = videosMap[videoId] || {
+                duration: "Unknown",
+                viewCount: "Unknown",
+                description: "No description available",
+                publishedAt: "Unknown date",
+                channelTitle: channelName
+            };
+            
+            const thumbnailUrl = item.snippet.thumbnails.medium ? 
+                item.snippet.thumbnails.medium.url : 
+                item.snippet.thumbnails.default.url;
+                
+            // Create a unique ID for each video card
+            const videoCardId = `video-${videoId}`;
+                
+            box.innerHTML += `
+                <div class="video-card" id="${videoCardId}">
+                    <img src="${thumbnailUrl}" alt="Video Thumbnail" class="video-card-thumbnail">
+                    <div class="video-card-info">
+                        <div class="video-card-title">${item.snippet.title}</div>
+                        <div class="video-card-meta">
+                            ${videoInfo.viewCount} views • ${videoInfo.duration} • ${videoInfo.publishedAt}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add click event listener after the element is created
+            setTimeout(() => {
+                const videoCard = document.getElementById(videoCardId);
+                if (videoCard) {
+                    videoCard.addEventListener('click', () => {
+                        playVideo(
+                            videoId, 
+                            item.snippet.title, 
+                            videoInfo.viewCount, 
+                            videoInfo.publishedAt, 
+                            videoInfo.description,
+                            videoInfo.channelTitle
+                        );
+                    });
+                }
+            }, 100);
+        });
+        
+        // Show the channel videos section
+        showSection('channelVideosSection');
+    } catch (error) {
+        console.error("Error fetching channel videos:", error);
+        box.innerHTML = "<div class='error'>Failed to load channel videos. Please try again.</div>";
+    }
+}
+
+// Play video in the video player
+function playVideo(videoId, title, viewCount, publishedAt, description, channelTitle) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoPlayerTitle = document.getElementById('videoPlayerTitle');
+    const videoPlayerMeta = document.getElementById('videoPlayerMeta');
+    const videoPlayerDescription = document.getElementById('videoPlayerDescription');
+    
+    // Create a clean embed URL
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&origin=${window.location.origin}`;
+    
+    // Set the video source
+    videoPlayer.src = embedUrl;
+    
+    // Set video info
+    videoPlayerTitle.textContent = title || "Unknown Title";
+    videoPlayerMeta.textContent = `${viewCount || "Unknown"} views • ${publishedAt || "Unknown date"}`;
+    videoPlayerDescription.textContent = description || "No description available";
+    
+    // Show the video player
+    document.getElementById('videoPlayerSection').style.display = 'flex';
+    
+    console.log("Playing video:", videoId, "URL:", embedUrl);
+}
+
+// Close the video player
+function closeVideoPlayer() {
+    const videoPlayer = document.getElementById('videoPlayer');
+    
+    // Stop the video
+    videoPlayer.src = '';
+    
+    // Hide the player
+    document.getElementById('videoPlayerSection').style.display = 'none';
+}
+
+// Helper function to escape strings for HTML
+function escapeString(str) {
+    if (!str) return '';
+    return str
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// Helper function to format subscriber counts
+function formatSubscribers(count) {
+    if (!count) return "0";
+    
+    const num = parseInt(count);
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+}
+
+// Helper function to format video duration
+function formatDuration(duration) {
+    if (!duration) return "Unknown";
+    
+    // Parse ISO 8601 duration format
+    const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
+    if (!match) return "Unknown";
+    
+    const hours = (match[1] || '').replace('H', '');
+    const minutes = (match[2] || '').replace('M', '');
+    const seconds = (match[3] || '').replace('S', '');
+    
+    if (hours) {
+        return `${hours}:${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+    } else if (minutes) {
+        return `${minutes}:${seconds.padStart(2, '0')}`;
+    } else {
+        return `0:${seconds.padStart(2, '0')}`;
+    }
+}
+
+// Helper function to format view counts
+function formatViews(count) {
+    if (!count) return "0";
+    
+    const num = parseInt(count);
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + "M";
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+}
+
+// Helper function to format date
+function formatDate(dateString) {
+    if (!dateString) return "Unknown date";
+    
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now - date);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) return "1 day ago";
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+        return `${Math.floor(diffDays / 365)} years ago`;
+    } catch (e) {
+        return "Unknown date";
+    }
+}
+
+// Tab navigation
+function showSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Show selected section
+    document.getElementById(sectionId).classList.add('active');
+    
+    // Activate corresponding tab (if it exists)
+    const tab = document.querySelector(`.tab[onclick="showSection('${sectionId}')"]`);
+    if (tab) {
+        tab.classList.add('active');
+    }
+}
+</script>
+
+</body>
+</html>
